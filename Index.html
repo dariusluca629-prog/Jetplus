@@ -1,0 +1,553 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JetPlus Flight Booking</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #eef5ff;
+  color: #142744;
+}
+header {
+  background: #075dcc;
+  color: white;
+  padding: 18px 6%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.logo { font-size: 25px; font-weight: bold; }
+header button { margin: 3px; }
+main {
+  max-width: 850px;
+  margin: 30px auto;
+  padding: 20px;
+}
+.card {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 3px 15px #00000012;
+  margin-bottom: 20px;
+}
+h1, h2 { color: #064fa9; }
+h1 { text-align: center; }
+label {
+  display: block;
+  margin: 12px 0 5px;
+  font-weight: bold;
+}
+input, select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #b7c9df;
+  border-radius: 6px;
+  font-size: 16px;
+  background: white;
+}
+button {
+  padding: 12px 18px;
+  background: #0865df;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+}
+button:hover { background: #034ba8; }
+button:focus, input:focus, select:focus {
+  outline: 3px solid #ffbf47;
+  outline-offset: 2px;
+}
+.primary {
+  width: 100%;
+  margin-top: 20px;
+}
+.links {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+.link {
+  color: #075dcc;
+  background: transparent;
+  padding: 5px 0;
+  text-decoration: underline;
+}
+.hidden { display: none !important; }
+.muted { color: #52647b; }
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.flight {
+  border: 1px solid #cfdeef;
+  border-radius: 8px;
+  padding: 15px;
+  margin: 12px 0;
+}
+.flight p { margin: 8px 0; }
+.notice {
+  padding: 12px;
+  border-radius: 6px;
+  background: #e5f2ff;
+  margin: 12px 0;
+}
+#message { font-weight: bold; }
+footer {
+  background: #075dcc;
+  color: white;
+  text-align: center;
+  padding: 22px;
+  margin-top: 35px;
+}
+footer a { color: white; margin: 0 8px; }
+#accessPanel {
+  position: fixed;
+  right: 12px;
+  bottom: 90px;
+  width: min(320px, calc(100vw - 24px));
+  background: white;
+  padding: 18px;
+  border: 2px solid #075dcc;
+  border-radius: 12px;
+  box-shadow: 0 5px 25px #0003;
+  z-index: 5;
+}
+#accessPanel label { font-weight: normal; }
+@media (max-width: 560px) {
+  main { padding: 12px; margin: 15px auto; }
+  .card { padding: 18px; }
+  .grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">✈ JetPlus</div>
+  <div>
+    <button type="button" onclick="speakPage()">🔊 Voice</button>
+    <button type="button" onclick="changeText(1)" aria-label="Increase text size">A+</button>
+    <button type="button" onclick="toggleAccess()">Accessibility</button>
+  </div>
+</header>
+
+<main>
+  <p id="message" role="status" aria-live="polite"></p>
+
+  <!-- 1. LOGIN -->
+  <section id="login" class="card">
+    <h1>Welcome</h1>
+    <p class="muted" style="text-align:center">
+      Sign in to your JetPlus account
+    </p>
+    <form onsubmit="loginUser(event)">
+      <label for="username">Username or phone number</label>
+      <input id="username" autocomplete="username" required>
+
+      <label for="password">Password</label>
+      <input id="password" type="password"
+             autocomplete="current-password" required>
+
+      <button class="primary" type="submit">Login</button>
+    </form>
+    <div class="links">
+      <button class="link" onclick="showPage('register')">Create Account</button>
+      <button class="link" onclick="showPage('forgot')">Forgot a Password?</button>
+    </div>
+  </section>
+
+  <!-- 2. CREATE ACCOUNT -->
+  <section id="register" class="card hidden">
+    <h1>Create Account</h1>
+    <p>Please fill in your details below.</p>
+    <form onsubmit="registerUser(event)">
+      <label for="firstName">First Name</label>
+      <input id="firstName" autocomplete="given-name" required>
+
+      <label for="lastName">Last Name</label>
+      <input id="lastName" autocomplete="family-name" required>
+
+      <label for="phone">Phone Number</label>
+      <input id="phone" type="tel" autocomplete="tel" required>
+
+      <label for="address">Address</label>
+      <input id="address" autocomplete="street-address" required>
+
+      <label for="newUser">Choose a username</label>
+      <input id="newUser" autocomplete="username" required>
+
+      <label for="newPassword">Create a password</label>
+      <input id="newPassword" type="password"
+             autocomplete="new-password" minlength="8" required>
+
+      <button class="primary" type="submit">Continue</button>
+    </form>
+    <button class="link" onclick="showPage('login')">Back to Login</button>
+  </section>
+
+  <!-- 3. FORGOT PASSWORD -->
+  <section id="forgot" class="card hidden">
+    <h1>Forgot Password?</h1>
+    <p>Enter your email address to request a password reset.</p>
+    <form onsubmit="resetPassword(event)">
+      <label for="email">Email Address</label>
+      <input id="email" type="email" autocomplete="email" required>
+      <button class="primary" type="submit">Send Reset Link</button>
+    </form>
+    <p class="muted">
+      This demo does not send real emails. A real website needs a
+      secure password-reset service.
+    </p>
+    <button class="link" onclick="showPage('login')">Back to Login</button>
+  </section>
+
+  <!-- 4. FLIGHT SEARCH -->
+  <section id="search" class="card hidden">
+    <h1>Welcome to JetPlus</h1>
+    <p>Find and book your perfect flight.</p>
+    <form onsubmit="searchFlights(event)">
+      <div class="grid">
+        <div>
+          <label for="from">From</label>
+          <input id="from" placeholder="e.g. London" required>
+        </div>
+        <div>
+          <label for="to">Destination</label>
+          <input id="to" placeholder="e.g. Suceava" required>
+        </div>
+        <div>
+          <label for="depart">Departure Date</label>
+          <input id="depart" type="date" required>
+        </div>
+        <div>
+          <label for="returnDate">Return Date</label>
+          <input id="returnDate" type="date">
+        </div>
+        <div>
+          <label for="adults">Adults</label>
+          <select id="adults">
+            <option value="1">1 adult</option>
+            <option value="2">2 adults</option>
+            <option value="3">3 adults</option>
+            <option value="4">4 adults</option>
+            <option value="5">5 adults</option>
+          </select>
+        </div>
+        <div>
+          <label for="children">Children (2–11)</label>
+          <select id="children">
+            <option value="0">0 children</option>
+            <option value="1">1 child</option>
+            <option value="2">2 children</option>
+            <option value="3">3 children</option>
+            <option value="4">4 children</option>
+          </select>
+        </div>
+        <div>
+          <label for="babies">Babies (under 2)</label>
+          <select id="babies">
+            <option value="0">0 babies</option>
+            <option value="1">1 baby</option>
+            <option value="2">2 babies</option>
+          </select>
+        </div>
+      </div>
+      <button class="primary" type="submit">Continue</button>
+    </form>
+  </section>
+
+  <!-- 5. AVAILABLE FLIGHTS -->
+  <section id="flights" class="card hidden">
+    <h1>Available Flights</h1>
+    <p id="routeSummary" class="muted"></p>
+    <div id="flightList"></div>
+    <button class="link" onclick="showPage('search')">Back to Search</button>
+  </section>
+
+  <!-- 6. PASSENGER DETAILS -->
+  <section id="passenger" class="card hidden">
+    <h1>Passenger Information</h1>
+    <p id="selectedFlight" class="notice"></p>
+    <form onsubmit="confirmBooking(event)">
+      <label for="passFirst">First Name (as on passport)</label>
+      <input id="passFirst" autocomplete="given-name" required>
+
+      <label for="passLast">Last Name</label>
+      <input id="passLast" autocomplete="family-name" required>
+
+      <label for="passport">Passport Number</label>
+      <input id="passport" autocomplete="off" required>
+
+      <label for="expiry">Passport Expiry Date</label>
+      <input id="expiry" type="date" required>
+
+      <label for="passportPhoto">Passport Photo (demo upload)</label>
+      <input id="passportPhoto" type="file"
+             accept="image/*,.pdf" required>
+
+      <p class="muted">
+        Use fictional details for this practice demo.
+        Real passport uploads require secure storage.
+      </p>
+      <button class="primary" type="submit">Continue</button>
+    </form>
+  </section>
+
+  <!-- 7. CONFIRMATION -->
+  <section id="confirmation" class="card hidden">
+    <h1>✓ Booking Summary</h1>
+    <h2>Booking Confirmed!</h2>
+    <p id="confirmationDetails"></p>
+    <p id="reference" class="notice"></p>
+    <button class="primary" onclick="showPage('search')">
+      Search Another Flight
+    </button>
+  </section>
+</main>
+
+<!-- ACCESSIBILITY PANEL -->
+<aside id="accessPanel" class="hidden" aria-label="Accessibility settings">
+  <h2>Accessibility</h2>
+  <label>
+    <input type="checkbox" id="highContrast"
+           onchange="toggleContrast()">
+    High Contrast Mode
+  </label>
+  <label>
+    <input type="checkbox" id="largeText"
+           onchange="setLargeText(this.checked)">
+    Large Text
+  </label>
+  <button class="primary" onclick="speakPage()">Read Page Aloud</button>
+  <button class="primary" onclick="stopSpeaking()">Stop Voice</button>
+  <button class="link" onclick="toggleAccess()">Close</button>
+</aside>
+
+<footer>
+  <p><strong>✈ JetPlus</strong></p>
+  <p>
+    <a href="#help" onclick="return footerInfo('Help')">Help</a> |
+    <a href="#contact" onclick="return footerInfo('Contact')">Contact</a> |
+    <a href="#privacy" onclick="return footerInfo('Privacy')">Privacy</a> |
+    <a href="#terms" onclick="return footerInfo('Terms')">Terms</a>
+  </p>
+  <p>JetPlus © 2026</p>
+</footer>
+
+<script>
+let chosenFlight = null;
+let searchData = {};
+
+function showPage(id) {
+  document.querySelectorAll('main > section').forEach(section => {
+    section.classList.add('hidden');
+  });
+  document.getElementById(id).classList.remove('hidden');
+  document.getElementById('message').textContent = '';
+  window.scrollTo(0, 0);
+}
+
+function announce(message) {
+  document.getElementById('message').textContent = message;
+}
+
+function loginUser(event) {
+  event.preventDefault();
+  // Demo only: no real account authentication.
+  if (!document.getElementById('username').value.trim() ||
+      !document.getElementById('password').value) return;
+  announce('Demo login successful.');
+  showPage('search');
+}
+
+function registerUser(event) {
+  event.preventDefault();
+  // A real account must be created by a secure backend.
+  announce('Demo account form completed.');
+  showPage('search');
+}
+
+function resetPassword(event) {
+  event.preventDefault();
+  announce('Demo only: no reset email was sent.');
+}
+
+function searchFlights(event) {
+  event.preventDefault();
+
+  const from = document.getElementById('from').value.trim();
+  const to = document.getElementById('to').value.trim();
+  const depart = document.getElementById('depart').value;
+  const returnDate = document.getElementById('returnDate').value;
+
+  if (from.toLowerCase() === to.toLowerCase()) {
+    announce('Choose a different destination.');
+    return;
+  }
+  if (returnDate && returnDate < depart) {
+    announce('Return date must be on or after departure.');
+    return;
+  }
+
+  searchData = {
+    from, to, depart, returnDate,
+    adults: Number(document.getElementById('adults').value),
+    children: Number(document.getElementById('children').value),
+    babies: Number(document.getElementById('babies').value)
+  };
+
+  document.getElementById('routeSummary').textContent =
+    from + ' → ' + to + ' | ' + depart +
+    (returnDate ? ' → ' + returnDate : ' | One way') +
+    ' | ' + searchData.adults + ' adult(s), ' +
+    searchData.children + ' child(ren), ' +
+    searchData.babies + ' baby/babies';
+
+  const flights = [
+    { airline: 'British Airways', time: '08:15 – 10:45',
+      duration: '2h 30m', price: 120 },
+    { airline: 'Ryanair', time: '11:20 – 13:50',
+      duration: '2h 30m', price: 98 },
+    { airline: 'EasyJet', time: '15:10 – 17:40',
+      duration: '2h 30m', price: 110 },
+    { airline: 'Wizz Air', time: '19:55 – 22:20',
+      duration: '2h 25m', price: 105 }
+  ];
+
+  const list = document.getElementById('flightList');
+  list.replaceChildren();
+
+  flights.forEach(flight => {
+    const item = document.createElement('div');
+    item.className = 'flight';
+
+    const name = document.createElement('h2');
+    name.textContent = flight.airline;
+    item.appendChild(name);
+
+    const time = document.createElement('p');
+    time.textContent = flight.time + ' · ' + flight.duration;
+    item.appendChild(time);
+
+    const price = document.createElement('p');
+    price.textContent = 'Example price: £' + flight.price +
+      ' per passenger';
+    item.appendChild(price);
+
+    const button = document.createElement('button');
+    button.textContent = 'Select Flight';
+    button.addEventListener('click', () => selectFlight(flight));
+    item.appendChild(button);
+
+    list.appendChild(item);
+  });
+
+  announce('Example flight options displayed.');
+  showPage('flights');
+}
+
+function selectFlight(flight) {
+  chosenFlight = flight;
+  document.getElementById('selectedFlight').textContent =
+    flight.airline + ' · ' + flight.time +
+    ' · Example price £' + flight.price + ' per passenger';
+  showPage('passenger');
+}
+
+function confirmBooking(event) {
+  event.preventDefault();
+
+  const expiry = document.getElementById('expiry').value;
+  if (expiry < new Date().toISOString().slice(0, 10)) {
+    announce('Your passport expiry date has passed.');
+    return;
+  }
+
+  const photo = document.getElementById('passportPhoto');
+  if (!photo.files || photo.files.length === 0) {
+    announce('Please select a passport photo.');
+    return;
+  }
+
+  const passenger =
+    document.getElementById('passFirst').value + ' ' +
+    document.getElementById('passLast').value;
+
+  document.getElementById('confirmationDetails').textContent =
+    'Passenger: ' + passenger +
+    ' | Route: ' + searchData.from + ' → ' + searchData.to +
+    ' | Date: ' + searchData.depart +
+    ' | Airline: ' + chosenFlight.airline;
+
+  document.getElementById('reference').textContent =
+    'DEMO-' + Math.random().toString(36).slice(2, 8).toUpperCase() +
+    ' · Practice reference only — no flight has been booked.';
+
+  showPage('confirmation');
+}
+
+function toggleAccess() {
+  document.getElementById('accessPanel').classList.toggle('hidden');
+}
+
+function changeText(amount) {
+  const current = Number(
+    document.body.dataset.textScale || 100
+  );
+  const next = Math.min(160, current + amount * 10);
+  document.body.dataset.textScale = next;
+  document.body.style.fontSize = next + '%';
+}
+
+function setLargeText(enabled) {
+  document.body.style.fontSize = enabled ? '125%' : '100%';
+}
+
+function toggleContrast() {
+  const enabled = document.getElementById('highContrast').checked;
+  document.body.style.background = enabled ? '#000' : '#eef5ff';
+  document.body.style.color = enabled ? '#fff' : '#142744';
+  document.querySelectorAll('.card').forEach(card => {
+    card.style.background = enabled ? '#111' : '#fff';
+    card.style.color = enabled ? '#fff' : '#142744';
+  });
+}
+
+function speakPage() {
+  if (!('speechSynthesis' in window)) {
+    announce('Voice reading is not supported in this browser.');
+    return;
+  }
+  stopSpeaking();
+  const text = document.querySelector('main section:not(.hidden)');
+  if (!text) return;
+  const speech = new SpeechSynthesisUtterance(text.innerText);
+  speech.lang = 'en-GB';
+  window.speechSynthesis.speak(speech);
+}
+
+function stopSpeaking() {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+  }
+}
+
+function footerInfo(topic) {
+  announce(topic + ' information page: demo placeholder.');
+  return false;
+}
+</script>
+</body>
+</html>
